@@ -1,0 +1,13 @@
+{
+    "create_roles": "false",
+    "guild": "Id du serveur",
+    "spam": "true",
+    "bot": {
+        "plugins": [
+            "plugins.attack"
+        ]
+    },
+    "token": "Token du bot",
+    "controller": "Votre id",
+    "create_channels": "false"
+}

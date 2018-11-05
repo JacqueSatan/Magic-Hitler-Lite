@@ -1,0 +1,129 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import gi
+gi.require_version('Gtk', '3.0')
+
+from gi.repository import Gtk
+import os, sys, json, subprocess
+
+
+
+class MyWindow(Gtk.ApplicationWindow):
+
+    def __init__(self, app):
+        grid = Gtk.Grid()
+        grid.set_column_spacing(15)
+        Gtk.Window.__init__(self, title="Magic Hitler Lite", application=app)
+        self.set_border_width(10)
+
+        with open("data/config.json", "r") as datafile:
+            data = json.load(datafile)
+
+        spam = Gtk.Switch()
+        spam.set_active(True)
+        spam.connect("notify::active", self.activate_spam)
+        spamtext = Gtk.Label()
+        spamtext.set_text("Spammer dans tous les salons")
+        grid.attach(spamtext, 1, 1, 1, 1)
+        grid.attach(spam, 2, 1, 1, 1)
+
+        create_channels = Gtk.Switch()
+        create_channels.set_active(False)
+        create_channels.connect("notify::active", self.activate_create_channels)
+        create_channelstext = Gtk.Label()
+        create_channelstext.set_text("Créer des salons textuels")
+        grid.attach(create_channelstext, 1, 2, 1, 1)
+        grid.attach(create_channels, 2, 2, 1, 1)
+
+        create_roles = Gtk.Switch()
+        create_roles.set_active(False)
+        create_roles.connect("notify::active", self.activate_create_roles)
+        create_rolestext = Gtk.Label()
+        create_rolestext.set_text("Créer des rôles")
+        grid.attach(create_rolestext, 1, 3, 1, 1)
+        grid.attach(create_roles, 2, 3, 1, 1)
+
+        token_box = Gtk.Entry()
+        token_box.set_text(data["token"])
+        grid.attach(token_box, 0, 1, 1, 1)
+
+        guild_box = Gtk.Entry()
+        guild_box.set_text(str(data["guild"]))
+        grid.attach(guild_box, 0, 2, 1, 1)
+
+        controller_box = Gtk.Entry()
+        controller_box.set_text(str(data["controller"]))
+        grid.attach(controller_box, 0 , 3, 1, 1)
+
+        save_button = Gtk.Button()
+        save_button.set_label("Lancer l'attaque")
+        save_button.connect("clicked", self.save, token_box, guild_box, controller_box)
+        grid.attach(save_button, 0, 4, 1, 1)
+
+        self.add(grid)
+
+    def activate_create_channels(self, button, active):
+        with open("data/config.json", "r") as datafile:
+            data = json.load(datafile)
+        if button.get_active():
+            data["create_channels"] = "true"
+        else:
+            data["create_channels"] = "false"
+        with open("data/config.json", "w") as datafile:
+            json.dump(data, datafile)
+
+    def activate_create_roles(self, button, active):
+        with open("data/config.json", "r") as datafile:
+            data = json.load(datafile)
+        if button.get_active():
+            data["create_roles"] = "true"
+        else:
+            data["create_roles"] = "false"
+        with open("data/config.json", "w") as datafile:
+            json.dump(data, datafile)
+
+    def activate_spam(self, button, active):
+        with open("data/config.json", "r") as datafile:
+            data = json.load(datafile)
+        if button.get_active():
+            data["spam"] = "true"
+        else:
+            data["spam"] = "false"
+        with open("data/config.json", "w") as datafile:
+            json.dump(data, datafile)
+
+            
+
+
+    def save(self, save_button, token_box, guild_box, controller_box):
+        token = token_box.get_text()
+        guild = guild_box.get_text()
+        controller = controller_box.get_text()
+        with open("data/config.json", "r") as jsonfile:
+            data = json.load(jsonfile)
+        data["token"] = token
+        data["guild"] = int(guild)
+        data["controller"] = int(controller)
+        with open("data/config.json", "w") as jsonfile:
+            json.dump(data, jsonfile)
+        os.system("cd data && python -m disco.cli --config config.json")
+        
+        
+
+
+
+class MyApplication(Gtk.Application):
+
+    def __init__(self):
+        Gtk.Application.__init__(self)
+
+    def do_activate(self):
+        win = MyWindow(self)
+        win.show_all()
+
+    def do_startup(self):
+        Gtk.Application.do_startup(self)
+
+app = MyApplication()
+exit_status = app.run(sys.argv)
+sys.exit(exit_status)
